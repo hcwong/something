@@ -1,1 +1,1 @@
-# Another random project whose purpose I have yet to decide on but it will be written in Go
+# A terminal tool for myself
