@@ -9,6 +9,19 @@ import (
 	"path/filepath"
 )
 
+// DeletePage delete files at the given path
+func DeletePage(name string) error {
+	dir, pathErr := filepath.Abs(filepath.Dir(os.Args[0]))
+	if pathErr != nil {
+		return pathErr
+	}
+	if err := delete(fmt.Sprintf("%s/pages/%s", dir, name)); err != nil {
+		log.Println("Failed to delete page")
+		return err
+	}
+	return nil
+}
+
 // GenPage generates a new manpage based on the one in templates, or creates a new one if the template page is missing
 func GenPage(name string) error {
 	dir, pathErr := filepath.Abs(filepath.Dir(os.Args[0]))
@@ -43,23 +56,35 @@ func GenPage(name string) error {
 	}
 
 	if vimErr := openFile(newFile); vimErr != nil {
-		DeleteFile(newFile)
+		delete(newFile)
 		return err
 	}
 
 	return nil
 }
 
-// DeleteFile delete files at the given path
-func DeleteFile(name string) error {
+// EditPage allows us to edit a page
+func EditPage(name string) error {
 	dir, pathErr := filepath.Abs(filepath.Dir(os.Args[0]))
 	if pathErr != nil {
 		return pathErr
 	}
-	if err := delete(fmt.Sprintf("%s/pages/%s", dir, name)); err != nil {
-		log.Println("Failed to delete page")
+
+	newFile := fmt.Sprintf("%s/pages/%s", dir, name)
+	isManPageExists, err := fileExists(newFile)
+	if err != nil {
 		return err
 	}
+	if !isManPageExists {
+		log.Println("The man page you want to edit does not exist, please first create it.")
+		return nil
+	}
+
+	if vimErr := openFile(newFile); vimErr != nil {
+		delete(newFile)
+		return err
+	}
+
 	return nil
 }
 
