@@ -10,13 +10,14 @@ import (
 )
 
 // GenPage generates a new manpage based on the one in templates, or creates a new one if the template page is missing
+// TODO: delete the file as long as there is an error at some point
 func GenPage(name string) error {
 	dir, pathErr := filepath.Abs(filepath.Dir(os.Args[0]))
 	if pathErr != nil {
 		return pathErr
 	}
 
-	isManPageExists, err := fileExists(fmt.Sprintf("%s/../pages/%s", dir, name))
+	isManPageExists, err := fileExists(fmt.Sprintf("%s/pages/%s", dir, name))
 	if err != nil {
 		return err
 	}
@@ -25,20 +26,21 @@ func GenPage(name string) error {
 		return nil
 	}
 
-	isTemplateExist, err := fileExists(fmt.Sprintf("%s../templates/man_template", dir))
+	isTemplateExist, err := fileExists(fmt.Sprintf("%s/templates/man_template", dir))
 	if err != nil {
 		return err
 	}
 
-	newFile := fmt.Sprintf("%s/../pages/%s", dir, name)
+	newFile := fmt.Sprintf("%s/pages/%s", dir, name)
 	if isTemplateExist {
-		copy(fmt.Sprintf("%s/../templates/man_template", dir), newFile)
-	} else {
-		file, err := os.Create(newFile)
-		if err != nil {
+		if err := createFile(newFile); err != nil {
 			return err
 		}
-		defer file.Close()
+		copy(fmt.Sprintf("%s/templates/man_template", dir), newFile)
+	} else {
+		if err := createFile(newFile); err != nil {
+			return err
+		}
 	}
 
 	if vimErr := openFile(newFile); vimErr != nil {
@@ -48,8 +50,17 @@ func GenPage(name string) error {
 	return nil
 }
 
+func createFile(path string) error {
+	file, err := os.Create(path)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+	return nil
+}
+
 // Taken from: https://stackoverflow.com/questions/21060945/simple-way-to-copy-a-file-in-golang
-// This file overwrites any existing file in dst.
+// This file overwrites any existing file in dst. File in dst must exist
 func copy(src, dst string) error {
 	in, err := os.Open(src)
 	if err != nil {
@@ -81,7 +92,10 @@ func fileExists(filePath string) (bool, error) {
 }
 
 func openFile(path string) error {
-	vimCmd := exec.Command("vim", path)
+	vimCmd := exec.Command("/usr/bin/vim", path)
+	vimCmd.Stdin = os.Stdin
+	vimCmd.Stderr = os.Stderr
+	vimCmd.Stdout = os.Stdout
 	if err := vimCmd.Run(); err != nil {
 		log.Println("Error while opening the file in vim.")
 		return err
