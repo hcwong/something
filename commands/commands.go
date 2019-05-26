@@ -10,7 +10,6 @@ import (
 )
 
 // GenPage generates a new manpage based on the one in templates, or creates a new one if the template page is missing
-// TODO: delete the file as long as there is an error at some point
 func GenPage(name string) error {
 	dir, pathErr := filepath.Abs(filepath.Dir(os.Args[0]))
 	if pathErr != nil {
@@ -44,9 +43,23 @@ func GenPage(name string) error {
 	}
 
 	if vimErr := openFile(newFile); vimErr != nil {
+		DeleteFile(newFile)
 		return err
 	}
 
+	return nil
+}
+
+// DeleteFile delete files at the given path
+func DeleteFile(name string) error {
+	dir, pathErr := filepath.Abs(filepath.Dir(os.Args[0]))
+	if pathErr != nil {
+		return pathErr
+	}
+	if err := delete(fmt.Sprintf("%s/pages/%s", dir, name)); err != nil {
+		log.Println("Failed to delete page")
+		return err
+	}
 	return nil
 }
 
@@ -81,8 +94,15 @@ func copy(src, dst string) error {
 	return out.Close()
 }
 
+func delete(filePath string) error {
+	if err := os.Remove(filePath); err != nil {
+		return err
+	}
+	return nil
+}
+
 func fileExists(filePath string) (bool, error) {
-	if _, err := os.Stat(fmt.Sprintf("%s", filePath)); !os.IsNotExist(err) {
+	if _, err := os.Stat(filePath); !os.IsNotExist(err) {
 		return true, nil
 	} else if os.IsNotExist(err) {
 		return false, nil
