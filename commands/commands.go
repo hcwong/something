@@ -15,7 +15,18 @@ func DeletePage(name string) error {
 	if pathErr != nil {
 		return pathErr
 	}
-	if err := delete(fmt.Sprintf("%s/pages/%s", dir, name)); err != nil {
+
+	newFile := fmt.Sprintf("%s/pages/%s", dir, name)
+	isManPageExists, err := fileExists(newFile)
+	if err != nil {
+		return err
+	}
+	if !isManPageExists {
+		log.Println("The man page you want to delete does not exist, please first create it.")
+		return nil
+	}
+
+	if err := delete(newFile); err != nil {
 		log.Println("Failed to delete page")
 		return err
 	}
@@ -136,6 +147,7 @@ func fileExists(filePath string) (bool, error) {
 	}
 }
 
+// Assume that vim is present.
 func openFile(path string) error {
 	vimCmd := exec.Command("/usr/bin/vim", path)
 	vimCmd.Stdin = os.Stdin
