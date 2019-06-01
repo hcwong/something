@@ -17,6 +17,8 @@ var (
 	manGen    = man.Flag("generate", "generate a new man page").Short('g').Bool()
 	manDelete = man.Flag("delete", "delete the given man page").Short('d').Bool()
 	manEdit   = man.Flag("edit", "edit a preexisting man page").Short('e').Bool()
+
+	ls = app.Command("ls", "List all the man pages you currently have")
 )
 
 func main() {
@@ -37,6 +39,8 @@ func main() {
 		} else {
 			log.Println("Flag not recognized")
 		}
+	case ls.FullCommand():
+		commands.Ls()
 	default:
 		log.Println("Subcommand not recognized.")
 	}

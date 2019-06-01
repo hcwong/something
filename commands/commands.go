@@ -99,6 +99,20 @@ func EditPage(name string) error {
 	return nil
 }
 
+// Ls lists all the man pages available
+func Ls() {
+	dir, pathErr := filepath.Abs(filepath.Dir(os.Args[0]))
+	if pathErr != nil {
+		log.Println("ls command failed")
+	}
+
+	cmd := exec.Command("ls", fmt.Sprintf("%s/pages", dir))
+	cmd.Stdout = os.Stdout
+	if err := cmd.Run(); err != nil {
+		log.Println("ls command failed")
+	}
+}
+
 func createFile(path string) error {
 	file, err := os.Create(path)
 	if err != nil {
