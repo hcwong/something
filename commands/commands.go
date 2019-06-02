@@ -10,19 +10,19 @@ import (
 )
 
 // DeletePage delete files at the given path
-func DeletePage(name string) error {
+func DeletePage(name string, fileType string) error {
 	dir, pathErr := filepath.Abs(filepath.Dir(os.Args[0]))
 	if pathErr != nil {
 		return pathErr
 	}
 
-	newFile := fmt.Sprintf("%s/pages/%s", dir, name)
-	isManPageExists, err := fileExists(newFile)
+	newFile := fmt.Sprintf("%s/%s/%s", dir, fileType, name)
+	isPageExists, err := fileExists(newFile)
 	if err != nil {
 		return err
 	}
-	if !isManPageExists {
-		log.Println("The man page you want to delete does not exist, please first create it.")
+	if !isPageExists {
+		log.Printf("The %s page you want to delete does not exist, please first create it.\n", fileType)
 		return nil
 	}
 
@@ -33,33 +33,33 @@ func DeletePage(name string) error {
 	return nil
 }
 
-// GenPage generates a new manpage based on the one in templates, or creates a new one if the template page is missing
-func GenPage(name string) error {
+// GenPage generates a new page based on the one in templates, or creates a new one if the page is missing
+func GenPage(name string, fileType string) error {
 	dir, pathErr := filepath.Abs(filepath.Dir(os.Args[0]))
 	if pathErr != nil {
 		return pathErr
 	}
 
-	isManPageExists, err := fileExists(fmt.Sprintf("%s/pages/%s", dir, name))
+	isPageExists, err := fileExists(fmt.Sprintf("%s/%s/%s", dir, fileType, name))
 	if err != nil {
 		return err
 	}
-	if isManPageExists {
-		log.Println("The man page you want to create already exists. Edit it or delete it.")
+	if isPageExists {
+		log.Printf("The %s page you want to create already exists. Edit it or delete it.\n", fileType)
 		return nil
 	}
 
-	isTemplateExist, err := fileExists(fmt.Sprintf("%s/templates/man_template", dir))
+	isTemplateExist, err := fileExists(fmt.Sprintf("%s/templates/%s_template", dir, fileType))
 	if err != nil {
 		return err
 	}
 
-	newFile := fmt.Sprintf("%s/pages/%s", dir, name)
+	newFile := fmt.Sprintf("%s/%s/%s", dir, fileType, name)
 	if isTemplateExist {
 		if err := createFile(newFile); err != nil {
 			return err
 		}
-		copy(fmt.Sprintf("%s/templates/man_template", dir), newFile)
+		copy(fmt.Sprintf("%s/templates/%s_template", dir, fileType), newFile)
 	} else {
 		if err := createFile(newFile); err != nil {
 			return err
@@ -75,19 +75,19 @@ func GenPage(name string) error {
 }
 
 // EditPage allows us to edit a page
-func EditPage(name string) error {
+func EditPage(name string, fileType string) error {
 	dir, pathErr := filepath.Abs(filepath.Dir(os.Args[0]))
 	if pathErr != nil {
 		return pathErr
 	}
 
-	newFile := fmt.Sprintf("%s/pages/%s", dir, name)
-	isManPageExists, err := fileExists(newFile)
+	newFile := fmt.Sprintf("%s/%s/%s", dir, fileType, name)
+	isPageExists, err := fileExists(newFile)
 	if err != nil {
 		return err
 	}
-	if !isManPageExists {
-		log.Println("The man page you want to edit does not exist, please first create it.")
+	if !isPageExists {
+		log.Printf("The %s page you want to edit does not exist, please first create it.\n", fileType)
 		return nil
 	}
 
@@ -99,14 +99,14 @@ func EditPage(name string) error {
 	return nil
 }
 
-// Ls lists all the man pages available
-func Ls() {
+// Ls lists all the pages available
+func Ls(fileType string) {
 	dir, pathErr := filepath.Abs(filepath.Dir(os.Args[0]))
 	if pathErr != nil {
 		log.Println("ls command failed")
 	}
 
-	cmd := exec.Command("ls", fmt.Sprintf("%s/pages", dir))
+	cmd := exec.Command("ls", fmt.Sprintf("%s/%s", dir, fileType))
 	cmd.Stdout = os.Stdout
 	if err := cmd.Run(); err != nil {
 		log.Println("ls command failed")

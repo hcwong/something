@@ -1,3 +1,4 @@
 # Ignores all the man pages
-/pages
+/man
+/notes
 nani
