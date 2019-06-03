@@ -151,6 +151,7 @@ func delete(filePath string) error {
 	return nil
 }
 
+// This returns whether the given file or directory exists
 func fileExists(filePath string) (bool, error) {
 	if _, err := os.Stat(filePath); !os.IsNotExist(err) {
 		return true, nil
@@ -172,4 +173,13 @@ func openFile(path string) error {
 		return err
 	}
 	return nil
+}
+
+// Function checks if a certain path is a directory or file
+func isDir(path string) (bool, error) {
+	file, err := os.Stat(path)
+	if err != nil {
+		return false, err
+	}
+	return file.Mode().IsDir(), nil
 }
