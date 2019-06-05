@@ -17,7 +17,7 @@ func DeletePage(name string, fileType string) error {
 	}
 
 	newFile := fmt.Sprintf("%s/%s/%s", dir, fileType, name)
-	isPageExists, err := fileExists(newFile)
+	isPageExists, err := isFileExists(newFile)
 	if err != nil {
 		return err
 	}
@@ -40,7 +40,7 @@ func GenPage(name string, fileType string) error {
 		return pathErr
 	}
 
-	isPageExists, err := fileExists(fmt.Sprintf("%s/%s/%s", dir, fileType, name))
+	isPageExists, err := isFileExists(fmt.Sprintf("%s/%s/%s", dir, fileType, name))
 	if err != nil {
 		return err
 	}
@@ -49,7 +49,7 @@ func GenPage(name string, fileType string) error {
 		return nil
 	}
 
-	isTemplateExist, err := fileExists(fmt.Sprintf("%s/templates/%s_template", dir, fileType))
+	isTemplateExist, err := isFileExists(fmt.Sprintf("%s/templates/%s_template", dir, fileType))
 	if err != nil {
 		return err
 	}
@@ -82,7 +82,7 @@ func EditPage(name string, fileType string) error {
 	}
 
 	newFile := fmt.Sprintf("%s/%s/%s", dir, fileType, name)
-	isPageExists, err := fileExists(newFile)
+	isPageExists, err := isFileExists(newFile)
 	if err != nil {
 		return err
 	}
@@ -111,6 +111,28 @@ func Ls(fileType string) {
 	if err := cmd.Run(); err != nil {
 		log.Println("ls command failed")
 	}
+}
+
+// Link links the notes folder to the content folder used for hugo
+func Link() {
+	dir, pathErr := filepath.Abs(filepath.Dir(os.Args[0]))
+	if pathErr != nil {
+		log.Println("Failed to link the notes folder to hugo")
+		return
+	}
+
+	contentPath := fmt.Sprintf("%s, content", dir)
+	isContentExists, _ := isFileExists(contentPath)
+	if isContentExists {
+		return
+	}
+
+	notesPath := fmt.Sprintf("%s/notes", dir)
+	isNotesExist, _ := isFileExists(notesPath)
+	if !isNotesExist {
+		mkdir(notesPath)
+	}
+	symlinkDir(notesPath, contentPath)
 }
 
 func createFile(path string) error {
@@ -152,7 +174,7 @@ func delete(filePath string) error {
 }
 
 // This returns whether the given file or directory exists
-func fileExists(filePath string) (bool, error) {
+func isFileExists(filePath string) (bool, error) {
 	if _, err := os.Stat(filePath); !os.IsNotExist(err) {
 		return true, nil
 	} else if os.IsNotExist(err) {
@@ -176,10 +198,23 @@ func openFile(path string) error {
 }
 
 // Function checks if a certain path is a directory or file
-func isDir(path string) (bool, error) {
+func isDir(path string) bool {
 	file, err := os.Stat(path)
 	if err != nil {
-		return false, err
+		log.Printf("Error occured while checking that path at %s is a directory\n", path)
+		return false
 	}
-	return file.Mode().IsDir(), nil
+	return file.Mode().IsDir()
+}
+
+func mkdir(path string) error {
+	if err := os.Mkdir(path, os.FileMode(0755)); err != nil {
+		log.Println("Failed to create new directory")
+	}
+	return nil
+}
+
+// Used to symlink the Hugo directory to the notes directory
+func symlinkDir(srcPath string, destPath string) {
+	os.Symlink(srcPath, destPath)
 }
