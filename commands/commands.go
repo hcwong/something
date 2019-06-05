@@ -115,19 +115,20 @@ func Ls(fileType string) {
 
 // Link links the notes folder to the content folder used for hugo
 func Link() {
-	dir, pathErr := filepath.Abs(filepath.Dir(os.Args[0]))
+	path, pathErr := filepath.Abs(filepath.Dir(os.Args[0]))
 	if pathErr != nil {
 		log.Println("Failed to link the notes folder to hugo")
 		return
 	}
 
-	contentPath := fmt.Sprintf("%s, content", dir)
+	contentPath := fmt.Sprintf("%s/content", path)
 	isContentExists, _ := isFileExists(contentPath)
 	if isContentExists {
+		log.Println("Content folder already linked")
 		return
 	}
 
-	notesPath := fmt.Sprintf("%s/notes", dir)
+	notesPath := fmt.Sprintf("%s/notes", path)
 	isNotesExist, _ := isFileExists(notesPath)
 	if !isNotesExist {
 		mkdir(notesPath)
