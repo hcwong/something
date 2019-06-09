@@ -1,3 +1,5 @@
 baseURL = ""
+contentDir="notes"
 languageCode = "en-us"
-title = "Notes"
+title = "Tool"
+
