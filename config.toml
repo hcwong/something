@@ -3,3 +3,5 @@ contentDir="notes"
 languageCode = "en-us"
 title = "Tool"
 
+[permalinks]
+  notes_all = "/:filename/"
