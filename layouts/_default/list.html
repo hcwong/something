@@ -6,6 +6,7 @@
   </head>  
   <body>
     {{ .Title }}
+    {{ .Content }}
     <ul>
       {{ range .Pages }}
         <li><a href="{{ .RelPermalink }}">{{ .Title }}</a></li>

@@ -62,7 +62,7 @@ func GenPage(name string, fileType string) error {
 		return nil
 	}
 
-	isTemplateExist, err := isFileExists(fmt.Sprintf("%s/templates/%s_template", dir, fileType))
+	isTemplateExist, err := isFileExists(fmt.Sprintf("%s/templates/%s_template.md", dir, fileType))
 	if err != nil {
 		return err
 	}
@@ -73,7 +73,7 @@ func GenPage(name string, fileType string) error {
 
 	if isTemplateExist {
 		// Create a new directory for notes. Basically notes got one extra step
-		copy(fmt.Sprintf("%s/templates/%s_template", dir, fileType), newFile)
+		copy(fmt.Sprintf("%s/templates/%s_template.md", dir, fileType), newFile)
 	}
 
 	if vimErr := openFile(newFile); vimErr != nil {
@@ -121,7 +121,17 @@ func Ls(fileType string) {
 		log.Println("ls command failed")
 	}
 
-	cmd := exec.Command("ls", fmt.Sprintf("%s/%s", dir, fileType))
+	var path string
+	if fileType == "notes" {
+		path = "/notes_all"
+	} else {
+		path = ""
+	}
+
+	findPath := fmt.Sprintf("%s/%s%s/*", dir, fileType, path)
+	fmt.Println(findPath)
+
+	cmd := exec.Command("find", findPath, "!", "-name", "'index_md'", "-print")
 	cmd.Stdout = os.Stdout
 	if err := cmd.Run(); err != nil {
 		log.Println("ls command failed")
@@ -129,9 +139,9 @@ func Ls(fileType string) {
 }
 
 // Link links the notes folder to the content folder used for hugo
-func Link() {
-	link()
-}
+// func Link() {
+// 	link()
+// }
 
 func createFile(path string) error {
 	file, err := os.Create(path)
@@ -212,27 +222,27 @@ func mkdir(path string) error {
 	return nil
 }
 
-func link() {
-	path, pathErr := filepath.Abs(filepath.Dir(os.Args[0]))
-	if pathErr != nil {
-		log.Println("Failed to link the notes folder to hugo")
-		return
-	}
+// func link() {
+// 	path, pathErr := filepath.Abs(filepath.Dir(os.Args[0]))
+// 	if pathErr != nil {
+// 		log.Println("Failed to link the notes folder to hugo")
+// 		return
+// 	}
 
-	contentPath := fmt.Sprintf("%s/content", path)
-	isContentExists, _ := isFileExists(contentPath)
-	if isContentExists {
-		log.Println("Content folder already linked")
-		return
-	}
+// 	contentPath := fmt.Sprintf("%s/content", path)
+// 	isContentExists, _ := isFileExists(contentPath)
+// 	if isContentExists {
+// 		log.Println("Content folder already linked")
+// 		return
+// 	}
 
-	notesPath := fmt.Sprintf("%s/notes", path)
-	isNotesExist, _ := isFileExists(notesPath)
-	if !isNotesExist {
-		mkdir(notesPath)
-	}
-	symlinkDir(notesPath, contentPath)
-}
+// 	notesPath := fmt.Sprintf("%s/notes", path)
+// 	isNotesExist, _ := isFileExists(notesPath)
+// 	if !isNotesExist {
+// 		mkdir(notesPath)
+// 	}
+// 	symlinkDir(notesPath, contentPath)
+// }
 
 // Used to symlink the Hugo directory to the notes directory
 func symlinkDir(srcPath string, destPath string) {

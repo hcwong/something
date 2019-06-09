@@ -29,7 +29,7 @@ var (
 	notesDelete = notes.Flag("delete", "delete the given notes page").Short('d').Bool()
 	notesEdit   = notes.Flag("edit", "edit a preexisting notes page").Short('e').Bool()
 
-	link = app.Command("link", "Sync your local notes before deploying")
+	// link = app.Command("link", "Sync your local notes before deploying")
 )
 
 func main() {
@@ -40,8 +40,8 @@ func main() {
 		handleLs()
 	case notes.FullCommand():
 		handleNotes()
-	case link.FullCommand():
-		commands.Link()
+	// case link.FullCommand():
+	// 	commands.Link()
 	default:
 		log.Println("Subcommand not recognized.")
 	}
