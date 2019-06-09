@@ -18,7 +18,7 @@ func DeletePage(name string, fileType string) error {
 
 	var fileToDelete string
 	if fileType == "notes" {
-		fileToDelete = fmt.Sprintf("%s/%s/%s", dir, fileType, name)
+		fileToDelete = fmt.Sprintf("%s/%s/notes_all/%s.md", dir, fileType, name)
 	} else {
 		fileToDelete = fmt.Sprintf("%s/%s/%s.md", dir, fileType, name)
 	}
@@ -48,7 +48,7 @@ func GenPage(name string, fileType string) error {
 
 	var newFile string
 	if fileType == "notes" {
-		newFile = fmt.Sprintf("%s/%s/%s", dir, fileType, name)
+		newFile = fmt.Sprintf("%s/%s/notes_all/%s.md", dir, fileType, name)
 	} else {
 		newFile = fmt.Sprintf("%s/%s/%s.md", dir, fileType, name)
 	}
@@ -67,23 +67,17 @@ func GenPage(name string, fileType string) error {
 		return err
 	}
 
-	if err := createFile(newFile, fileType); err != nil {
+	if err := createFile(newFile); err != nil {
 		return err
 	}
 
-	var updatedPath string
-	if fileType == "notes" {
-		updatedPath = fmt.Sprintf("%s/_index.md", newFile)
-	} else {
-		updatedPath = newFile
-	}
 	if isTemplateExist {
 		// Create a new directory for notes. Basically notes got one extra step
-		copy(fmt.Sprintf("%s/templates/%s_template", dir, fileType), updatedPath)
+		copy(fmt.Sprintf("%s/templates/%s_template", dir, fileType), newFile)
 	}
 
-	if vimErr := openFile(updatedPath); vimErr != nil {
-		delete(updatedPath)
+	if vimErr := openFile(newFile); vimErr != nil {
+		delete(newFile)
 		return err
 	}
 
@@ -99,7 +93,7 @@ func EditPage(name string, fileType string) error {
 
 	var fileToEdit string
 	if fileType == "notes" {
-		fileToEdit = fmt.Sprintf("%s/%s/%s/_index.md", dir, fileType, name)
+		fileToEdit = fmt.Sprintf("%s/%s/notes_all/%s.md", dir, fileType, name)
 	} else {
 		fileToEdit = fmt.Sprintf("%s/%s/%s.md", dir, fileType, name)
 	}
@@ -139,21 +133,12 @@ func Link() {
 	link()
 }
 
-func createFile(path string, fileType string) error {
-	if fileType == "notes" {
-		mkdir(path)
-		nestedFile, nestedErr := os.Create(fmt.Sprintf("%s/_index.md", path))
-		if nestedErr != nil {
-			return nestedErr
-		}
-		defer nestedFile.Close()
-	} else {
-		file, err := os.Create(path)
-		if err != nil {
-			return err
-		}
-		defer file.Close()
+func createFile(path string) error {
+	file, err := os.Create(path)
+	if err != nil {
+		return err
 	}
+	defer file.Close()
 	return nil
 }
 
