@@ -29,6 +29,8 @@ var (
 	notesDelete = notes.Flag("delete", "delete the given notes page").Short('d').Bool()
 	notesEdit   = notes.Flag("edit", "edit a preexisting notes page").Short('e').Bool()
 
+	deploy = app.Command("deploy", "Deploy your notes onto netlify")
+
 	// link = app.Command("link", "Sync your local notes before deploying")
 )
 
@@ -42,6 +44,8 @@ func main() {
 		handleNotes()
 	// case link.FullCommand():
 	// 	commands.Link()
+	case deploy.FullCommand():
+		commands.Deploy()
 	default:
 		log.Println("Subcommand not recognized.")
 	}

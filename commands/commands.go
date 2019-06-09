@@ -9,6 +9,30 @@ import (
 	"path/filepath"
 )
 
+// Deploy deploys the notes page unto netlify
+func Deploy() {
+	dir, pathErr := filepath.Abs(filepath.Dir(os.Args[0]))
+	if pathErr != nil {
+		log.Printf("Deployment failed due to %s\n", pathErr)
+		return
+	}
+
+	buildCmd := exec.Command("hugo", "--gc", "--minify")
+	buildCmd.Dir = dir
+	buildCmd.Stdout = os.Stdout
+	if err := buildCmd.Run(); err != nil {
+		log.Printf("Failed to build files for deployment because: %s\n", err)
+		return
+	}
+
+	deployCmd := exec.Command("netlify", "deploy", "--prod")
+	deployCmd.Dir = dir
+	deployCmd.Stdout = os.Stdout
+	if err := deployCmd.Run(); err != nil {
+		log.Printf("Failed to deploy because: %s\n", err)
+	}
+}
+
 // DeletePage delete files at the given path
 func DeletePage(name string, fileType string) error {
 	dir, pathErr := filepath.Abs(filepath.Dir(os.Args[0]))
@@ -128,10 +152,10 @@ func Ls(fileType string) {
 		path = ""
 	}
 
-	findPath := fmt.Sprintf("%s/%s%s/*", dir, fileType, path)
-	fmt.Println(findPath)
+	findPath := fmt.Sprintf("%s/%s%s", dir, fileType, path)
 
-	cmd := exec.Command("find", findPath, "!", "-name", "'index_md'", "-print")
+	cmd := exec.Command("bash", "-c", "ls | grep -v '_index.md'")
+	cmd.Dir = findPath
 	cmd.Stdout = os.Stdout
 	if err := cmd.Run(); err != nil {
 		log.Println("ls command failed")
