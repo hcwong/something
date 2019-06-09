@@ -16,8 +16,14 @@ func DeletePage(name string, fileType string) error {
 		return pathErr
 	}
 
-	newFile := fmt.Sprintf("%s/%s/%s", dir, fileType, name)
-	isPageExists, err := isFileExists(newFile)
+	var fileToDelete string
+	if fileType == "notes" {
+		fileToDelete = fmt.Sprintf("%s/%s/%s", dir, fileType, name)
+	} else {
+		fileToDelete = fmt.Sprintf("%s/%s/%s.md", dir, fileType, name)
+	}
+
+	isPageExists, err := isFileExists(fileToDelete)
 	if err != nil {
 		return err
 	}
@@ -26,7 +32,7 @@ func DeletePage(name string, fileType string) error {
 		return nil
 	}
 
-	if err := delete(newFile); err != nil {
+	if err := delete(fileToDelete); err != nil {
 		log.Println("Failed to delete page")
 		return err
 	}
@@ -40,7 +46,14 @@ func GenPage(name string, fileType string) error {
 		return pathErr
 	}
 
-	isPageExists, err := isFileExists(fmt.Sprintf("%s/%s/%s", dir, fileType, name))
+	var newFile string
+	if fileType == "notes" {
+		newFile = fmt.Sprintf("%s/%s/%s", dir, fileType, name)
+	} else {
+		newFile = fmt.Sprintf("%s/%s/%s.md", dir, fileType, name)
+	}
+
+	isPageExists, err := isFileExists(newFile)
 	if err != nil {
 		return err
 	}
@@ -54,20 +67,23 @@ func GenPage(name string, fileType string) error {
 		return err
 	}
 
-	newFile := fmt.Sprintf("%s/%s/%s", dir, fileType, name)
-	if isTemplateExist {
-		if err := createFile(newFile); err != nil {
-			return err
-		}
-		copy(fmt.Sprintf("%s/templates/%s_template", dir, fileType), newFile)
-	} else {
-		if err := createFile(newFile); err != nil {
-			return err
-		}
+	if err := createFile(newFile, fileType); err != nil {
+		return err
 	}
 
-	if vimErr := openFile(newFile); vimErr != nil {
-		delete(newFile)
+	var updatedPath string
+	if fileType == "notes" {
+		updatedPath = fmt.Sprintf("%s/_index.md", newFile)
+	} else {
+		updatedPath = newFile
+	}
+	if isTemplateExist {
+		// Create a new directory for notes. Basically notes got one extra step
+		copy(fmt.Sprintf("%s/templates/%s_template", dir, fileType), updatedPath)
+	}
+
+	if vimErr := openFile(updatedPath); vimErr != nil {
+		delete(updatedPath)
 		return err
 	}
 
@@ -81,8 +97,13 @@ func EditPage(name string, fileType string) error {
 		return pathErr
 	}
 
-	newFile := fmt.Sprintf("%s/%s/%s", dir, fileType, name)
-	isPageExists, err := isFileExists(newFile)
+	var fileToEdit string
+	if fileType == "notes" {
+		fileToEdit = fmt.Sprintf("%s/%s/%s/_index.md", dir, fileType, name)
+	} else {
+		fileToEdit = fmt.Sprintf("%s/%s/%s.md", dir, fileType, name)
+	}
+	isPageExists, err := isFileExists(fileToEdit)
 	if err != nil {
 		return err
 	}
@@ -91,8 +112,8 @@ func EditPage(name string, fileType string) error {
 		return nil
 	}
 
-	if vimErr := openFile(newFile); vimErr != nil {
-		delete(newFile)
+	if vimErr := openFile(fileToEdit); vimErr != nil {
+		delete(fileToEdit)
 		return err
 	}
 
@@ -115,33 +136,24 @@ func Ls(fileType string) {
 
 // Link links the notes folder to the content folder used for hugo
 func Link() {
-	path, pathErr := filepath.Abs(filepath.Dir(os.Args[0]))
-	if pathErr != nil {
-		log.Println("Failed to link the notes folder to hugo")
-		return
-	}
-
-	contentPath := fmt.Sprintf("%s/content", path)
-	isContentExists, _ := isFileExists(contentPath)
-	if isContentExists {
-		log.Println("Content folder already linked")
-		return
-	}
-
-	notesPath := fmt.Sprintf("%s/notes", path)
-	isNotesExist, _ := isFileExists(notesPath)
-	if !isNotesExist {
-		mkdir(notesPath)
-	}
-	symlinkDir(notesPath, contentPath)
+	link()
 }
 
-func createFile(path string) error {
-	file, err := os.Create(path)
-	if err != nil {
-		return err
+func createFile(path string, fileType string) error {
+	if fileType == "notes" {
+		mkdir(path)
+		nestedFile, nestedErr := os.Create(fmt.Sprintf("%s/_index.md", path))
+		if nestedErr != nil {
+			return nestedErr
+		}
+		defer nestedFile.Close()
+	} else {
+		file, err := os.Create(path)
+		if err != nil {
+			return err
+		}
+		defer file.Close()
 	}
-	defer file.Close()
 	return nil
 }
 
@@ -168,7 +180,7 @@ func copy(src, dst string) error {
 }
 
 func delete(filePath string) error {
-	if err := os.Remove(filePath); err != nil {
+	if err := os.RemoveAll(filePath); err != nil {
 		return err
 	}
 	return nil
@@ -213,6 +225,28 @@ func mkdir(path string) error {
 		log.Println("Failed to create new directory")
 	}
 	return nil
+}
+
+func link() {
+	path, pathErr := filepath.Abs(filepath.Dir(os.Args[0]))
+	if pathErr != nil {
+		log.Println("Failed to link the notes folder to hugo")
+		return
+	}
+
+	contentPath := fmt.Sprintf("%s/content", path)
+	isContentExists, _ := isFileExists(contentPath)
+	if isContentExists {
+		log.Println("Content folder already linked")
+		return
+	}
+
+	notesPath := fmt.Sprintf("%s/notes", path)
+	isNotesExist, _ := isFileExists(notesPath)
+	if !isNotesExist {
+		mkdir(notesPath)
+	}
+	symlinkDir(notesPath, contentPath)
 }
 
 // Used to symlink the Hugo directory to the notes directory
