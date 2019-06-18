@@ -22,6 +22,7 @@ func Deploy() {
 	buildCmd.Stdout = os.Stdout
 	if err := buildCmd.Run(); err != nil {
 		log.Printf("Failed to build files for deployment because: %s\n", err)
+		log.Println("Did you remember to install hugo?")
 		return
 	}
 
@@ -30,6 +31,7 @@ func Deploy() {
 	deployCmd.Stdout = os.Stdout
 	if err := deployCmd.Run(); err != nil {
 		log.Printf("Failed to deploy because: %s\n", err)
+		log.Println("Did you remember to install netlify?")
 	}
 }
 
@@ -223,7 +225,7 @@ func openFile(path string) error {
 	vimCmd.Stderr = os.Stderr
 	vimCmd.Stdout = os.Stdout
 	if err := vimCmd.Run(); err != nil {
-		log.Println("Error while opening the file in vim.")
+		log.Println("Error while opening the file in vim. Do you have vim installed?")
 		return err
 	}
 	return nil
@@ -245,28 +247,6 @@ func mkdir(path string) error {
 	}
 	return nil
 }
-
-// func link() {
-// 	path, pathErr := filepath.Abs(filepath.Dir(os.Args[0]))
-// 	if pathErr != nil {
-// 		log.Println("Failed to link the notes folder to hugo")
-// 		return
-// 	}
-
-// 	contentPath := fmt.Sprintf("%s/content", path)
-// 	isContentExists, _ := isFileExists(contentPath)
-// 	if isContentExists {
-// 		log.Println("Content folder already linked")
-// 		return
-// 	}
-
-// 	notesPath := fmt.Sprintf("%s/notes", path)
-// 	isNotesExist, _ := isFileExists(notesPath)
-// 	if !isNotesExist {
-// 		mkdir(notesPath)
-// 	}
-// 	symlinkDir(notesPath, contentPath)
-// }
 
 // Used to symlink the Hugo directory to the notes directory
 func symlinkDir(srcPath string, destPath string) {
