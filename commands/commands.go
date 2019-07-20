@@ -7,6 +7,8 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+
+	mdtty "github.com/hcwong/golang-md-tty"
 )
 
 // Deploy deploys the notes page unto netlify
@@ -164,10 +166,22 @@ func Ls(fileType string) {
 	}
 }
 
-// Link links the notes folder to the content folder used for hugo
-// func Link() {
-// 	link()
-// }
+// ViewMan enables outputs the man page on the terminal
+// TODO: Add the option to view the page in less also if it is supported
+func ViewMan(fileName string) error {
+	dir, pathErr := filepath.Abs(filepath.Dir(os.Args[0]))
+	if pathErr != nil {
+		return pathErr
+	}
+
+	filePath := fmt.Sprintf("%s/man/%s", dir, fileName)
+	if exists, err := isFileExists(filePath); err != nil || !exists {
+		log.Println("The file you are looking for does not exist or an error occured")
+		return err
+	}
+	mdtty.Convert(filePath)
+	return nil
+}
 
 func createFile(path string) error {
 	file, err := os.Create(path)

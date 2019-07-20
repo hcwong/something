@@ -1,6 +1,7 @@
 # Ignores all the man pages
 /public
 /.netlify
+# TODO: Remove all the files from within the folders but keep the folders
 /man
 /notes
 nani

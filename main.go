@@ -17,6 +17,7 @@ var (
 	manGen    = man.Flag("generate", "generate a new man page").Short('g').Bool()
 	manDelete = man.Flag("delete", "delete the given man page").Short('d').Bool()
 	manEdit   = man.Flag("edit", "edit a preexisting man page").Short('e').Bool()
+	manView   = man.Flag("view", "view your existing man page").Short('v').Bool()
 
 	ls      = app.Command("ls", "List all the pages you currently have")
 	lsMan   = ls.Flag("man", "see all man pages").Short('m').Bool()
@@ -74,6 +75,8 @@ func handleMan() {
 		if err := commands.EditPage(*manName, "man"); err != nil {
 			log.Println("Could not edit page")
 		}
+	} else if *manView {
+		commands.ViewMan(*manName)
 	} else {
 		log.Println("Flag not recognized")
 	}
