@@ -174,7 +174,7 @@ func ViewMan(fileName string) error {
 		return pathErr
 	}
 
-	filePath := fmt.Sprintf("%s/man/%s", dir, fileName)
+	filePath := fmt.Sprintf("%s/man/%s.md", dir, fileName)
 	if exists, err := isFileExists(filePath); err != nil || !exists {
 		log.Println("The file you are looking for does not exist or an error occured")
 		return err
